@@ -1,10 +1,3 @@
-/**
- * PlanCard
- * Tarjeta con fondo degradado púrpura que muestra el plan activo del usuario.
- * Usa LinearGradient de expo-linear-gradient si está instalado,
- * con fallback automático a dos capas de View.
- */
-
 import React from 'react';
 import {
   StyleSheet,

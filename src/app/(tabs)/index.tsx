@@ -1,14 +1,5 @@
-/**
- * HomeScreen — Pantalla principal de Sport Movement
- *
- * Layout:
- *  1. Slider de imágenes (con overlay púrpura) + logo + btn hamburguesa
- *  2. Efecto "splash" decorativo en la transición hero → contenido blanco
- *  3. Sección blanca con tarjeta de Plan activo
- *  4. Drawer lateral (SideMenu) superpuesto
- */
-
-import React, { useCallback, useState } from 'react';
+import { useRouter } from "expo-router";
+import React, { useCallback, useState } from "react";
 import {
   Image,
   Platform,
@@ -17,31 +8,38 @@ import {
   StyleSheet,
   TouchableOpacity,
   View,
-} from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import ImageSlider from '@/components/ImageSlider';
-import PlanCard    from '@/components/PlanCard';
-import SideMenu    from '@/components/SideMenu';
-import { BrandColors } from '@/constants/theme';
+import ImageSlider from "@/components/ImageSlider";
+import PlanCard from "@/components/PlanCard";
+import SideMenu from "@/components/SideMenu";
+import { BrandColors } from "@/constants/theme";
 
 export default function HomeScreen() {
   const [menuOpen, setMenuOpen] = useState(false);
   const insets = useSafeAreaInsets();
+  const router = useRouter();
 
-  const openMenu  = useCallback(() => setMenuOpen(true), []);
+  const openMenu = useCallback(() => setMenuOpen(true), []);
   const closeMenu = useCallback(() => setMenuOpen(false), []);
 
-  const handleNavigate = useCallback((route: string) => {
-    // TODO: integrar con expo-router cuando se implemente la navegación completa
-    console.log('Navegar a:', route);
-  }, []);
+  const handleNavigate = useCallback(
+    (route: string) => {
+      router.push(route as any);
+    },
+    [router],
+  );
 
-  const topPad = Platform.OS === 'web' ? 16 : insets.top + 8;
+  const topPad = Platform.OS === "web" ? 16 : insets.top + 8;
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+      <StatusBar
+        barStyle="light-content"
+        translucent
+        backgroundColor="transparent"
+      />
 
       <ScrollView
         style={styles.scroll}
@@ -72,7 +70,7 @@ export default function HomeScreen() {
 
             {/* Logo blanco */}
             <Image
-              source={require('@/assets/images/logo-full.png')}
+              source={require("@/assets/images/logo-full.png")}
               style={styles.logoTopBar}
               resizeMode="contain"
               tintColor={BrandColors.white}
@@ -81,10 +79,10 @@ export default function HomeScreen() {
 
           {/* ── Efecto splash pintura tirada en la base del hero ─────────────────── */}
           <View style={styles.splashContainer} pointerEvents="none">
-            <Image 
-              source={require('@/assets/images/splash.png')} 
-              style={styles.splashImage} 
-              resizeMode="cover" 
+            <Image
+              source={require("@/assets/images/splash.png")}
+              style={styles.splashImage}
+              resizeMode="cover"
             />
           </View>
         </View>
@@ -94,7 +92,7 @@ export default function HomeScreen() {
           <PlanCard
             title="PLAN"
             subtitle="Ver mi plan activo"
-            onPress={() => console.log('Ver plan')}
+            onPress={() => handleNavigate("/plan")}
           />
         </View>
       </ScrollView>
@@ -124,17 +122,17 @@ const styles = StyleSheet.create({
 
   // ─── Hero ──────────────────────────────────────────────────────────────────
   heroSection: {
-    position: 'relative',
+    position: "relative",
   },
 
   topBar: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingLeft: 14,
     paddingRight: 4, // Apegado a la esquina derecha
     paddingBottom: 8,
@@ -146,21 +144,21 @@ const styles = StyleSheet.create({
     height: 50,
     borderRadius: 25,
     backgroundColor: BrandColors.white,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.20,
+    shadowOpacity: 0.2,
     shadowRadius: 6,
     elevation: 8,
   },
   hamburger: {
     width: 21,
     height: 17,
-    justifyContent: 'space-between',
+    justifyContent: "space-between",
   },
   hamburgerLine: {
-    width: '100%',
+    width: "100%",
     height: 2.5,
     backgroundColor: BrandColors.black,
     borderRadius: 2,
@@ -174,7 +172,7 @@ const styles = StyleSheet.create({
 
   // ─── Efecto splash / salpicadura de pintura ───────────────────────────────────────────
   splashContainer: {
-    position: 'absolute',
+    position: "absolute",
     bottom: -30, // Mucho más abajo para enterrar la línea recta en la sección blanca
     left: 0,
     right: 0,
@@ -182,10 +180,10 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   splashImage: {
-    width: '100%',
-    height: '100%',
+    width: "100%",
+    height: "100%",
     // Si la imagen de pintura no es blanca, o si necesita ajustarse al blanco de la tarjeta:
-    tintColor: BrandColors.white, 
+    tintColor: BrandColors.white,
   },
 
   // ─── Contenido ─────────────────────────────────────────────────────────────
