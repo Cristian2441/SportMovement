@@ -1,10 +1,3 @@
-/**
- * SideMenu
- * Drawer lateral que se desliza desde la izquierda con animación spring.
- * Permanece montado mientras visible=true; cuando se cierra espera a que
- * la animación termine antes de ocultar el backdrop.
- */
-
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Animated,

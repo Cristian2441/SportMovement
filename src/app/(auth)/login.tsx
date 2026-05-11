@@ -1,0 +1,241 @@
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import React, { useState } from 'react';
+import {
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+import { BrandColors } from '@/constants/theme';
+
+export default function LoginScreen() {
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPass, setShowPass] = useState(false);
+
+  return (
+    <KeyboardAvoidingView
+      style={styles.root}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+
+      <ScrollView
+        contentContainerStyle={[styles.scroll, { paddingTop: insets.top + 16, paddingBottom: insets.bottom + 24 }]}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.topBar}>
+          <Image
+            source={require('@/assets/images/logo-full.png')}
+            style={styles.logoFull}
+            resizeMode="contain"
+            tintColor={BrandColors.white}
+          />
+        </View>
+        <View style={styles.centerIcon}>
+          <Image
+            source={require('@/assets/images/logo-icon.png')}
+            style={styles.logoIcon}
+            resizeMode="contain"
+            tintColor={BrandColors.white}
+          />
+        </View>
+        <View style={styles.form}>
+
+          <Text style={styles.label}>Correo Electrónico</Text>
+          <View style={styles.inputWrapper}>
+            <TextInput
+              style={styles.input}
+              placeholder="correo electrónico"
+              placeholderTextColor="rgba(255,255,255,0.5)"
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoComplete="email"
+            />
+          </View>
+
+          <Text style={styles.label}>Contraseña</Text>
+          <View style={styles.inputWrapper}>
+            <TextInput
+              style={[styles.input, { flex: 1 }]}
+              placeholder="contraseña"
+              placeholderTextColor="rgba(255,255,255,0.5)"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={!showPass}
+              autoCapitalize="none"
+            />
+            <Pressable onPress={() => setShowPass(!showPass)} style={styles.eyeBtn}>
+              <MaterialCommunityIcons
+                name={showPass ? 'eye-off-outline' : 'eye-outline'}
+                size={20}
+                color="rgba(255,255,255,0.7)"
+              />
+            </Pressable>
+          </View>
+
+          <TouchableOpacity
+            onPress={() => router.push('/(auth)/recuperar')}
+            activeOpacity={0.7}
+            style={styles.forgotBtn}
+          >
+            <Text style={styles.forgotText}>¿te olvidaste de tu contraseña?</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.primaryBtn} activeOpacity={0.85}>
+            <Text style={styles.primaryBtnText}>Iniciar Sesión</Text>
+          </TouchableOpacity>
+
+          <View style={styles.divider}>
+            <View style={styles.dividerLine} />
+            <Text style={styles.dividerText}>o continúa con</Text>
+            <View style={styles.dividerLine} />
+          </View>
+
+          <View style={styles.socialRow}>
+            <View style={styles.socialBtn}>
+              <Text style={styles.socialIcon}>f</Text>
+            </View>
+            <View style={styles.socialBtn}>
+              <Text style={styles.socialIcon}>G</Text>
+            </View>
+          </View>
+
+          <TouchableOpacity
+            onPress={() => router.push('/(auth)/registro')}
+            activeOpacity={0.7}
+            style={styles.switchBtn}
+          >
+            <Text style={styles.switchText}>Registrarse</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
+}
+
+const INPUT_BG = 'rgba(150,180,150,0.35)';
+
+const styles = StyleSheet.create({
+  root: { flex: 1, backgroundColor: 'transparent' },
+  scroll: { flexGrow: 1, paddingHorizontal: 32 },
+
+  topBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+    marginLeft: -80,
+    marginTop: -10,
+  },
+  logoFull: { width: 230, height: 76 },
+
+  centerIcon: {
+    alignItems: 'center',
+    marginVertical: 16,
+  },
+  logoIcon: {
+    width: 920,
+    height: 220,
+    opacity: 0.95,
+  },
+
+  form: { width: '100%' },
+
+  label: {
+    color: BrandColors.white,
+    fontSize: 15,
+    fontWeight: '600',
+    marginBottom: 6,
+    letterSpacing: 0.3,
+  },
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: INPUT_BG,
+    borderRadius: 10,
+    marginBottom: 16,
+    paddingHorizontal: 14,
+  },
+  input: {
+    flex: 1,
+    height: 48,
+    color: BrandColors.white,
+    fontSize: 15,
+  },
+  eyeBtn: { padding: 4 },
+
+  forgotBtn: { alignSelf: 'flex-end', marginTop: -8, marginBottom: 20 },
+  forgotText: {
+    color: 'rgba(255,255,255,0.75)',
+    fontSize: 13,
+    textDecorationLine: 'underline',
+  },
+
+  primaryBtn: {
+    backgroundColor: BrandColors.purple,
+    borderRadius: 10,
+    height: 50,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 20,
+    shadowColor: BrandColors.purple,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.45,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  primaryBtnText: {
+    color: BrandColors.white,
+    fontSize: 16,
+    fontWeight: '700',
+    letterSpacing: 0.4,
+  },
+
+  divider: { flexDirection: 'row', alignItems: 'center', marginBottom: 16 },
+  dividerLine: { flex: 1, height: 1, backgroundColor: 'rgba(255,255,255,0.25)' },
+  dividerText: {
+    color: 'rgba(255,255,255,0.6)',
+    fontSize: 12,
+    marginHorizontal: 10,
+  },
+
+  socialRow: { flexDirection: 'row', justifyContent: 'center', gap: 20, marginBottom: 24 },
+  socialBtn: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.3)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  socialIcon: {
+    color: BrandColors.white,
+    fontSize: 22,
+    fontWeight: '700',
+  },
+
+  switchBtn: { alignItems: 'center' },
+  switchText: {
+    color: BrandColors.white,
+    fontSize: 15,
+    fontWeight: '600',
+    textDecorationLine: 'underline',
+  },
+});
