@@ -10,6 +10,7 @@ import {
   View,
 } from 'react-native';
 import { BrandColors } from '@/constants/theme';
+import { useAuth } from '@/context/AuthContext';
 
 const { width: W } = Dimensions.get('window');
 const MENU_W = Math.min(W * 0.74, 320);
@@ -33,6 +34,7 @@ interface Props {
 export default function SideMenu({ visible, onClose, onNavigate }: Props) {
   // Tracked separately so we can unmount AFTER the close animation finishes
   const [mounted, setMounted] = useState(visible);
+  const { logout } = useAuth();
 
   const slideX    = useRef(new Animated.Value(-MENU_W)).current;
   const backdropO = useRef(new Animated.Value(0)).current;
@@ -73,11 +75,15 @@ export default function SideMenu({ visible, onClose, onNavigate }: Props) {
   }, [visible, slideX, backdropO]);
 
   const handleNav = useCallback(
-    (route: string) => {
-      onNavigate(route);
+    async (route: string) => {
       onClose();
+      if (route === '/logout') {
+        await logout();
+      } else {
+        onNavigate(route);
+      }
     },
-    [onNavigate, onClose],
+    [onNavigate, onClose, logout],
   );
 
   if (!mounted) return null;
