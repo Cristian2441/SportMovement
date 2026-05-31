@@ -2,6 +2,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
+  ActivityIndicator,
   Image,
   KeyboardAvoidingView,
   Platform,
@@ -17,13 +18,45 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BrandColors } from '@/constants/theme';
+import { authApi } from '@/services/api';
+import { useAuth } from '@/context/AuthContext';
 
 export default function LoginScreen() {
+  const { login } = useAuth();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const [email, setEmail] = useState('');
+
+  const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
   const [showPass, setShowPass] = useState(false);
+  const [loading, setLoading]   = useState(false);
+  const [errors, setErrors]     = useState<{ email?: string; password?: string }>({});
+
+  // Error de servidor (credenciales inválidas) → se muestra inline
+  const [serverError, setServerError] = useState('');
+
+  const validate = () => {
+    const e: typeof errors = {};
+    if (!email.trim())  e.email    = 'El correo es requerido';
+    if (!password)      e.password = 'La contraseña es requerida';
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
+
+  const handleLogin = async () => {
+    setServerError('');
+    if (!validate()) return;
+    setLoading(true);
+    try {
+      const response = await authApi.login(email.trim(), password);
+      await login(response.token, response.user);
+      // AuthContext hace la redirección automática
+    } catch (err: any) {
+      setServerError(err.message ?? 'Credenciales inválidas. Verifica tu correo y contraseña.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <KeyboardAvoidingView
@@ -45,6 +78,7 @@ export default function LoginScreen() {
             tintColor={BrandColors.white}
           />
         </View>
+
         <View style={styles.centerIcon}>
           <Image
             source={require('@/assets/images/logo-icon.png')}
@@ -53,30 +87,34 @@ export default function LoginScreen() {
             tintColor={BrandColors.white}
           />
         </View>
+
         <View style={styles.form}>
 
+          {/* Email */}
           <Text style={styles.label}>Correo Electrónico</Text>
-          <View style={styles.inputWrapper}>
+          <View style={[styles.inputWrapper, (errors.email || serverError) && styles.inputError]}>
             <TextInput
               style={styles.input}
               placeholder="correo electrónico"
               placeholderTextColor="rgba(255,255,255,0.5)"
               value={email}
-              onChangeText={setEmail}
+              onChangeText={t => { setEmail(t); setErrors(p => ({ ...p, email: '' })); setServerError(''); }}
               keyboardType="email-address"
               autoCapitalize="none"
               autoComplete="email"
             />
           </View>
+          {errors.email ? <Text style={styles.errorText}>{errors.email}</Text> : null}
 
+          {/* Contraseña */}
           <Text style={styles.label}>Contraseña</Text>
-          <View style={styles.inputWrapper}>
+          <View style={[styles.inputWrapper, (errors.password || serverError) && styles.inputError]}>
             <TextInput
               style={[styles.input, { flex: 1 }]}
               placeholder="contraseña"
               placeholderTextColor="rgba(255,255,255,0.5)"
               value={password}
-              onChangeText={setPassword}
+              onChangeText={t => { setPassword(t); setErrors(p => ({ ...p, password: '' })); setServerError(''); }}
               secureTextEntry={!showPass}
               autoCapitalize="none"
             />
@@ -88,6 +126,15 @@ export default function LoginScreen() {
               />
             </Pressable>
           </View>
+          {errors.password ? <Text style={styles.errorText}>{errors.password}</Text> : null}
+
+          {/* Error de servidor (credenciales incorrectas) */}
+          {serverError ? (
+            <View style={styles.serverErrorRow}>
+              <MaterialCommunityIcons name="alert-circle-outline" size={14} color={BrandColors.pinkLight} style={{ marginRight: 5 }} />
+              <Text style={styles.serverErrorText}>{serverError}</Text>
+            </View>
+          ) : null}
 
           <TouchableOpacity
             onPress={() => router.push('/(auth)/recuperar')}
@@ -97,8 +144,16 @@ export default function LoginScreen() {
             <Text style={styles.forgotText}>¿te olvidaste de tu contraseña?</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.primaryBtn} activeOpacity={0.85}>
-            <Text style={styles.primaryBtnText}>Iniciar Sesión</Text>
+          <TouchableOpacity
+            style={[styles.primaryBtn, loading && styles.primaryBtnDisabled]}
+            activeOpacity={0.85}
+            onPress={handleLogin}
+            disabled={loading}
+          >
+            {loading
+              ? <ActivityIndicator color={BrandColors.white} />
+              : <Text style={styles.primaryBtnText}>Iniciar Sesión</Text>
+            }
           </TouchableOpacity>
 
           <View style={styles.divider}>
@@ -125,6 +180,7 @@ export default function LoginScreen() {
           </TouchableOpacity>
         </View>
       </ScrollView>
+
     </KeyboardAvoidingView>
   );
 }
@@ -132,27 +188,14 @@ export default function LoginScreen() {
 const INPUT_BG = 'rgba(150,180,150,0.35)';
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: 'transparent' },
+  root:   { flex: 1, backgroundColor: 'transparent' },
   scroll: { flexGrow: 1, paddingHorizontal: 32 },
 
-  topBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 4,
-    marginLeft: -80,
-    marginTop: -10,
-  },
+  topBar: { flexDirection: 'row', alignItems: 'center', marginBottom: 4, marginLeft: -80, marginTop: -10 },
   logoFull: { width: 230, height: 76 },
 
-  centerIcon: {
-    alignItems: 'center',
-    marginVertical: 16,
-  },
-  logoIcon: {
-    width: 920,
-    height: 220,
-    opacity: 0.95,
-  },
+  centerIcon: { alignItems: 'center', marginVertical: 16 },
+  logoIcon:   { width: 920, height: 220, opacity: 0.95 },
 
   form: { width: '100%' },
 
@@ -168,8 +211,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: INPUT_BG,
     borderRadius: 10,
-    marginBottom: 16,
+    marginBottom: 4,
     paddingHorizontal: 14,
+  },
+  inputError: {
+    borderWidth: 1,
+    borderColor: BrandColors.pink,
   },
   input: {
     flex: 1,
@@ -179,7 +226,28 @@ const styles = StyleSheet.create({
   },
   eyeBtn: { padding: 4 },
 
-  forgotBtn: { alignSelf: 'flex-end', marginTop: -8, marginBottom: 20 },
+  errorText: {
+    color: BrandColors.pinkLight,
+    fontSize: 12,
+    marginBottom: 10,
+    marginLeft: 2,
+  },
+
+  // Error de credenciales inline
+  serverErrorRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+    marginLeft: 2,
+  },
+  serverErrorText: {
+    color: BrandColors.pinkLight,
+    fontSize: 12,
+    flex: 1,
+    lineHeight: 16,
+  },
+
+  forgotBtn: { alignSelf: 'flex-end', marginTop: 4, marginBottom: 20 },
   forgotText: {
     color: 'rgba(255,255,255,0.75)',
     fontSize: 13,
@@ -199,6 +267,7 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 8,
   },
+  primaryBtnDisabled: { opacity: 0.6 },
   primaryBtnText: {
     color: BrandColors.white,
     fontSize: 16,
@@ -206,13 +275,9 @@ const styles = StyleSheet.create({
     letterSpacing: 0.4,
   },
 
-  divider: { flexDirection: 'row', alignItems: 'center', marginBottom: 16 },
+  divider:     { flexDirection: 'row', alignItems: 'center', marginBottom: 16 },
   dividerLine: { flex: 1, height: 1, backgroundColor: 'rgba(255,255,255,0.25)' },
-  dividerText: {
-    color: 'rgba(255,255,255,0.6)',
-    fontSize: 12,
-    marginHorizontal: 10,
-  },
+  dividerText: { color: 'rgba(255,255,255,0.6)', fontSize: 12, marginHorizontal: 10 },
 
   socialRow: { flexDirection: 'row', justifyContent: 'center', gap: 20, marginBottom: 24 },
   socialBtn: {
@@ -225,17 +290,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  socialIcon: {
-    color: BrandColors.white,
-    fontSize: 22,
-    fontWeight: '700',
-  },
+  socialIcon: { color: BrandColors.white, fontSize: 22, fontWeight: '700' },
 
-  switchBtn: { alignItems: 'center' },
-  switchText: {
-    color: BrandColors.white,
-    fontSize: 15,
-    fontWeight: '600',
-    textDecorationLine: 'underline',
-  },
+  switchBtn:  { alignItems: 'center' },
+  switchText: { color: BrandColors.white, fontSize: 15, fontWeight: '600', textDecorationLine: 'underline' },
 });
