@@ -2,20 +2,23 @@ import * as SecureStore from 'expo-secure-store';
 import { useRouter, useSegments } from 'expo-router';
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { authApi } from '@/services/api';
+import type { UserRole } from '@/services/api';
 
 const TOKEN_KEY = 'sportmovement_token';
-const USER_KEY = 'sportmovement_user';
+const USER_KEY  = 'sportmovement_user';
 
 type User = {
   id: string;
   email: string;
+  persona_id?: string;
   nombre_completo?: string;
-  // Otros datos del usuario que vengan del back...
+  rol?: UserRole;
 };
 
 type AuthContextType = {
   token: string | null;
   user: User | null;
+  rol: UserRole | null;
   isLoading: boolean;
   login: (token: string, user: any) => Promise<void>;
   logout: () => Promise<void>;
@@ -32,20 +35,22 @@ export function useAuth() {
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [token, setToken] = useState<string | null>(null);
-  const [user, setUser] = useState<User | null>(null);
+  const [token, setToken]     = useState<string | null>(null);
+  const [user, setUser]       = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   const segments = useSegments();
-  const router = useRouter();
+  const router   = useRouter();
+
+  // Rol derivado del usuario
+  const rol: UserRole | null = user?.rol ?? null;
 
   useEffect(() => {
-    // Cargar sesión guardada al iniciar la app
     const loadSession = async () => {
       try {
         const storedToken = await SecureStore.getItemAsync(TOKEN_KEY);
-        const storedUser = await SecureStore.getItemAsync(USER_KEY);
-        
+        const storedUser  = await SecureStore.getItemAsync(USER_KEY);
+
         if (storedToken && storedUser) {
           setToken(storedToken);
           setUser(JSON.parse(storedUser));
@@ -60,20 +65,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     loadSession();
   }, []);
 
-  // Proteger las rutas de la app (Redirección automática)
+  // Redirección automática basada en sesión y rol
   useEffect(() => {
     if (isLoading) return;
 
-    const inAuthGroup = segments[0] === '(auth)';
+    const inAuthGroup       = segments[0] === '(auth)';
+    const inTabsGroup       = segments[0] === '(tabs)';
+    const inEntrenadorGroup = segments[0] === '(entrenador)';
 
-    if (!token && !inAuthGroup) {
-      // No hay sesión y trata de entrar a la app → enviarlo a login
-      router.replace('/(auth)/login');
-    } else if (token && inAuthGroup) {
-      // Tiene sesión y trata de entrar al login/registro → mandarlo a la app
-      router.replace('/(tabs)');
+    if (!token) {
+      // Sin sesión → login
+      if (!inAuthGroup) router.replace('/(auth)/login');
+      return;
     }
-  }, [token, segments, isLoading]);
+
+    // Con sesión → redirigir según rol
+    const userRol = user?.rol ?? 'alumno';
+
+    if (userRol === 'entrenador') {
+      if (!inEntrenadorGroup) router.replace('/(entrenador)/personas');
+    } else {
+      // alumno y admin → tabs normales
+      if (!inTabsGroup) router.replace('/(tabs)');
+    }
+  }, [token, segments, isLoading, user?.rol]);
 
   const login = async (newToken: string, newUser: any) => {
     try {
@@ -89,14 +104,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = async () => {
     try {
       if (token) {
-        // Opcional: avisar al backend que se cerró sesión
         await authApi.logout(token).catch(console.error);
       }
       await SecureStore.deleteItemAsync(TOKEN_KEY);
       await SecureStore.deleteItemAsync(USER_KEY);
       setToken(null);
       setUser(null);
-      
       router.replace('/(auth)/login');
     } catch (error) {
       console.error('Error al cerrar sesión', error);
@@ -104,7 +117,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ token, user, isLoading, login, logout }}>
+    <AuthContext.Provider value={{ token, user, rol, isLoading, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
