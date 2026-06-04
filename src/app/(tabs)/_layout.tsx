@@ -12,18 +12,7 @@ function TabIcon({ name, color }: { name: IconName; color: string }) {
   return <MaterialCommunityIcons name={name} size={27} color={color} />;
 }
 
-// Ícono central QR estilo FAB elevado
-function QrTabIcon({ focused }: { focused: boolean }) {
-  return (
-    <View style={styles.qrFab}>
-      <MaterialCommunityIcons
-        name="qrcode-scan"
-        size={30}
-        color={focused ? BrandColors.white : BrandColors.white}
-      />
-    </View>
-  );
-}
+
 
 export default function TabLayout() {
   const insets = useSafeAreaInsets();
@@ -81,23 +70,13 @@ export default function TabLayout() {
         }}
       />
 
-      {/* Pestaña central: Mi QR — botón FAB destacado */}
+      {/* Pestaña central: Mi QR */}
       <Tabs.Screen
         name="qr"
         options={{
-          title: "mi QR",
-          tabBarIcon: ({ focused }) => <QrTabIcon focused={focused} />,
-          tabBarItemStyle: {
-            // Eleva el ítem central visualmente
-            marginBottom: Platform.OS === "ios" ? 10 : 6,
-          },
-          tabBarLabelStyle: {
-            fontSize: 11,
-            fontWeight: "700",
-            letterSpacing: 0.4,
-            marginTop: 6,
-            color: BrandColors.white,
-          },
+          title: "",
+          tabBarLabel: () => null, // Oculta completamente el texto
+          tabBarIcon: ({ color }) => <TabIcon name="qrcode-scan" color={color} />,
         }}
       />
 
@@ -129,24 +108,4 @@ export default function TabLayout() {
   );
 }
 
-const styles = StyleSheet.create({
-  qrFab: {
-    width: 58,
-    height: 58,
-    borderRadius: 29,
-    backgroundColor: "#1a1a1a",
-    alignItems: "center",
-    justifyContent: "center",
-    // Sombra rosa llamativa
-    shadowColor: BrandColors.pink,
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.55,
-    shadowRadius: 12,
-    elevation: 14,
-    // Borde sutil blanco
-    borderWidth: 2.5,
-    borderColor: "rgba(255,255,255,0.22)",
-    // Lo elevamos por encima de la barra
-    marginBottom: Platform.OS === "ios" ? 12 : 8,
-  },
-});
+const styles = StyleSheet.create({});

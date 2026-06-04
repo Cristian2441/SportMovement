@@ -40,12 +40,17 @@ async function request<T>(
 
 // ─── Auth ────────────────────────────────────────────────────────────────────
 
+export type UserRole = 'alumno' | 'entrenador' | 'admin';
+
 export interface AuthResponse {
   token: string;
   refreshToken: string;
   user: {
     id: string;
     email: string;
+    persona_id?: string;
+    nombre_completo?: string;
+    rol?: UserRole;
   };
   message?: string;
 }
@@ -109,3 +114,10 @@ export interface QrData {
 export const personaApi = {
   getMiQr: () => request<QrData>('/personas/mi-qr'),
 };
+
+export interface RolData {
+  rol: UserRole;
+  persona_id: string | null;
+  nombre_completo: string | null;
+}
+

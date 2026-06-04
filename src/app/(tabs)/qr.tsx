@@ -18,7 +18,6 @@ import { BrandColors } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
 import { personaApi, QrData } from '@/services/api';
 
-// ── Constantes ─────────────────────────────────────────────────────────────────
 const QR_SIZE = 220;
 
 export default function QrScreen() {
@@ -29,12 +28,10 @@ export default function QrScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Animaciones
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.85)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
-  // ── Carga del QR desde el backend ────────────────────────────────────────────
   useEffect(() => {
     const load = async () => {
       try {
@@ -51,7 +48,6 @@ export default function QrScreen() {
     load();
   }, []);
 
-  // ── Animación de entrada ──────────────────────────────────────────────────────
   useEffect(() => {
     if (!loading && qrData) {
       Animated.parallel([
@@ -68,7 +64,6 @@ export default function QrScreen() {
         }),
       ]).start();
 
-      // Pulso sutil infinito
       const loop = Animated.loop(
         Animated.sequence([
           Animated.timing(pulseAnim, {
@@ -105,7 +100,6 @@ export default function QrScreen() {
 
   const topPad = Platform.OS === 'web' ? 24 : insets.top + 12;
 
-  // ── Render ────────────────────────────────────────────────────────────────────
   return (
     <View style={styles.root}>
       <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
@@ -116,7 +110,6 @@ export default function QrScreen() {
         bounces={false}
         showsVerticalScrollIndicator={false}
       >
-        {/* ── Header ─────────────────────────────────────────────────────────── */}
         <View style={styles.header}>
           <Image
             source={require('@/assets/images/logo-full.png')}
@@ -127,7 +120,6 @@ export default function QrScreen() {
           <Text style={styles.headerSubtitle}>Pase de acceso</Text>
         </View>
 
-        {/* ── Tarjeta QR ─────────────────────────────────────────────────────── */}
         {loading ? (
           <View style={styles.loadingContainer}>
             <MaterialCommunityIcons name="qrcode-scan" size={64} color="rgba(255,255,255,0.3)" />
@@ -148,20 +140,16 @@ export default function QrScreen() {
               { opacity: fadeAnim, transform: [{ scale: scaleAnim }] },
             ]}
           >
-            {/* Halo de brillo animado */}
             <Animated.View
               style={[styles.glowRing, { transform: [{ scale: pulseAnim }] }]}
             />
 
-            {/* Tarjeta principal */}
             <View style={styles.card}>
-              {/* Badge Sport Movement */}
               <View style={styles.badge}>
                 <MaterialCommunityIcons name="lightning-bolt" size={14} color={BrandColors.white} />
                 <Text style={styles.badgeText}>SPORT MOVEMENT</Text>
               </View>
 
-              {/* QR */}
               <View style={styles.qrContainer}>
                 <QRCode
                   value={qrData!.persona_id}
@@ -172,17 +160,14 @@ export default function QrScreen() {
                 />
               </View>
 
-              {/* Nombre */}
               <Text style={styles.userName} numberOfLines={2}>
                 {qrData!.nombre_completo}
               </Text>
 
-              {/* ID corto */}
               <Text style={styles.userId}>
                 ID: {qrData!.persona_id.slice(0, 8).toUpperCase()}
               </Text>
 
-              {/* Decorador inferior */}
               <View style={styles.cardFooter}>
                 <View style={styles.footerDot} />
                 <Text style={styles.footerLabel}>Pase único e intransferible</Text>
@@ -192,7 +177,6 @@ export default function QrScreen() {
           </Animated.View>
         )}
 
-        {/* ── Info footer ────────────────────────────────────────────────────── */}
         {!loading && !error && (
           <View style={styles.infoBox}>
             <MaterialCommunityIcons name="shield-check-outline" size={20} color="rgba(255,255,255,0.6)" />
@@ -206,7 +190,6 @@ export default function QrScreen() {
   );
 }
 
-// ── Estilos ───────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
   root: {
     flex: 1,
@@ -221,7 +204,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 
-  // ─── Header ─────────────────────────────────────────────────────────────────
   header: {
     alignItems: 'center',
     paddingBottom: 28,
@@ -239,7 +221,6 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
 
-  // ─── Loading / Error ─────────────────────────────────────────────────────────
   loadingContainer: {
     flex: 1,
     alignItems: 'center',
@@ -280,7 +261,6 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
   },
 
-  // ─── Tarjeta QR ──────────────────────────────────────────────────────────────
   cardWrapper: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -315,7 +295,6 @@ const styles = StyleSheet.create({
     gap: 12,
   },
 
-  // Badge
   badge: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -332,7 +311,6 @@ const styles = StyleSheet.create({
     letterSpacing: 1.4,
   },
 
-  // QR
   qrContainer: {
     padding: 12,
     backgroundColor: '#FFFFFF',
@@ -341,7 +319,6 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(0,0,0,0.06)',
   },
 
-  // Nombre e ID
   userName: {
     fontSize: 18,
     fontWeight: '700',
@@ -357,7 +334,6 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
 
-  // Footer de la tarjeta
   cardFooter: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -378,7 +354,6 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
 
-  // ─── Info Box ────────────────────────────────────────────────────────────────
   infoBox: {
     flexDirection: 'row',
     alignItems: 'flex-start',
