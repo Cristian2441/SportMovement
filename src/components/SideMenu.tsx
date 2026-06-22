@@ -42,7 +42,6 @@ export default function SideMenu({ visible, onClose, onNavigate }: Props) {
   useEffect(() => {
     if (visible) {
       setMounted(true);
-      // Open: slide in + fade backdrop
       Animated.parallel([
         Animated.spring(slideX, {
           toValue: 0,

@@ -25,7 +25,6 @@ import { useAuth } from '@/context/AuthContext';
 const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/;
 const EMAIL_REGEX    = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-// Validación de RUT chileno (opcional, solo si está lleno)
 function validarRut(rut: string): boolean {
   const clean = rut.replace(/\./g, '').replace(/-/g, '').toUpperCase();
   if (clean.length < 2) return false;
@@ -57,14 +56,12 @@ export default function RegistroScreen() {
   const [loading, setLoading]     = useState(false);
   const [errors, setErrors]       = useState<Record<string, string>>({});
 
-  // Error de servidor → texto inline debajo del botón
   const [serverError, setServerError] = useState('');
 
   const validate = () => {
     const e: Record<string, string> = {};
     if (!nombre.trim())                        e.nombre   = 'El nombre es requerido';
 
-    // Validación de RUT solo si fue ingresado
     if (rut.trim() && !validarRut(rut.trim())) e.rut      = 'El RUT ingresado no es válido';
 
     if (!email.trim())                         e.email    = 'El correo es requerido';
@@ -132,7 +129,7 @@ export default function RegistroScreen() {
 
         <View style={styles.form}>
 
-          {/* Nombre */}
+          
           <Text style={styles.label}>Nombre Completo</Text>
           <View style={[styles.inputWrapper, errors.nombre && styles.inputError]}>
             <TextInput
@@ -146,7 +143,7 @@ export default function RegistroScreen() {
           </View>
           {errors.nombre ? <Text style={styles.errorText}>{errors.nombre}</Text> : null}
 
-          {/* RUT (opcional) */}
+          
           <Text style={styles.label}>Rut <Text style={styles.optional}>(opcional)</Text></Text>
           <View style={[styles.inputWrapper, errors.rut && styles.inputError]}>
             <TextInput
@@ -161,7 +158,7 @@ export default function RegistroScreen() {
           </View>
           {errors.rut ? <Text style={styles.errorText}>{errors.rut}</Text> : null}
 
-          {/* Email */}
+        
           <Text style={styles.label}>Correo Electrónico</Text>
           <View style={[styles.inputWrapper, errors.email && styles.inputError]}>
             <TextInput
@@ -177,7 +174,7 @@ export default function RegistroScreen() {
           </View>
           {errors.email ? <Text style={styles.errorText}>{errors.email}</Text> : null}
 
-          {/* Contraseña */}
+          
           <Text style={styles.label}>Contraseña</Text>
           <View style={[styles.inputWrapper, errors.password && styles.inputError]}>
             <TextInput
@@ -199,7 +196,7 @@ export default function RegistroScreen() {
           </View>
           {errors.password ? <Text style={styles.errorText}>{errors.password}</Text> : null}
 
-          {/* Confirmar */}
+          
           <Text style={styles.label}>Confirmar Contraseña</Text>
           <View style={[styles.inputWrapper, errors.confirm && styles.inputError]}>
             <TextInput
@@ -233,7 +230,7 @@ export default function RegistroScreen() {
             }
           </TouchableOpacity>
 
-          {/* Error del servidor inline */}
+          
           {serverError ? (
             <View style={styles.serverErrorRow}>
               <MaterialCommunityIcons name="alert-circle-outline" size={14} color={BrandColors.pinkLight} style={{ marginRight: 5 }} />
@@ -308,7 +305,6 @@ const styles = StyleSheet.create({
     marginLeft: 2,
   },
 
-  // Error de servidor inline
   serverErrorRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',

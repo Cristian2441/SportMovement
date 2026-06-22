@@ -26,7 +26,6 @@ export default function PlanCard({
       accessibilityRole="button"
       accessibilityLabel={`Plan: ${title}`}
     >
-      {/* Capa de degradado simulada */}
       <View style={styles.gradientTop} />
 
       <View style={styles.content}>

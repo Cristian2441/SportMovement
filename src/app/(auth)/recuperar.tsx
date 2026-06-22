@@ -27,18 +27,14 @@ export default function RecuperarScreen() {
   const router   = useRouter();
   const insets   = useSafeAreaInsets();
 
-  // Pasos: 1 → correo, 2 → código, 3 → nueva contraseña
   const [step, setStep] = useState<1 | 2 | 3>(1);
 
-  // Paso 1
   const [email, setEmail]       = useState('');
   const [emailError, setEmailError] = useState('');
 
-  // Paso 2 — código de 6 dígitos
   const [code, setCode]         = useState('');
   const [codeError, setCodeError] = useState('');
 
-  // Paso 3 — nueva contraseña
   const [newPass, setNewPass]         = useState('');
   const [confirmPass, setConfirmPass] = useState('');
   const [showNew, setShowNew]         = useState(false);
@@ -48,7 +44,6 @@ export default function RecuperarScreen() {
 
   const [loading, setLoading]     = useState(false);
 
-  // ─── Paso 1: Enviar correo ───────────────────────────────────────────────
   const handleSendEmail = async () => {
     if (!email.trim()) {
       setEmailError('El correo es requerido');
@@ -60,14 +55,13 @@ export default function RecuperarScreen() {
       await authApi.forgotPassword(email.trim());
       setStep(2);
     } catch (err: any) {
-      // Si el backend lanza error (correo no registrado u otro), lo mostramos inline
       setEmailError(err.message ?? 'No encontramos una cuenta con ese correo');
     } finally {
       setLoading(false);
     }
   };
 
-  // ─── Paso 2: Verificar código ────────────────────────────────────────────
+
   const handleVerifyCode = async () => {
     const trimmed = code.trim();
     if (!trimmed) {
@@ -90,7 +84,6 @@ export default function RecuperarScreen() {
     }
   };
 
-  // ─── Paso 3: Cambiar contraseña ──────────────────────────────────────────
   const handleResetPassword = async () => {
     let hasError = false;
     if (!newPass) {
@@ -121,7 +114,6 @@ export default function RecuperarScreen() {
     }
   };
 
-  // ─── UI helpers ──────────────────────────────────────────────────────────
   const stepTitles = ['Recuperar contraseña', 'Ingresa el código', 'Nueva contraseña'];
   const stepDescriptions = [
     'Te enviaremos un código de 6 dígitos al correo registrado en tu cuenta.',
@@ -144,7 +136,6 @@ export default function RecuperarScreen() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {/* Logo */}
         <View style={styles.topBar}>
           <Image
             source={require('@/assets/images/logo-full.png')}
@@ -163,7 +154,6 @@ export default function RecuperarScreen() {
           />
         </View>
 
-        {/* Indicador de pasos */}
         <View style={styles.stepsRow}>
           {[1, 2, 3].map(n => (
             <View key={n} style={styles.stepItemRow}>
@@ -178,13 +168,11 @@ export default function RecuperarScreen() {
           ))}
         </View>
 
-        {/* Título y descripción */}
         <Text style={styles.stepTitle}>{stepTitles[step - 1]}</Text>
         <Text style={styles.description}>{stepDescriptions[step - 1]}</Text>
 
         <View style={styles.form}>
 
-          {/* ── PASO 1: Correo ── */}
           {step === 1 && (
             <>
               <Text style={styles.label}>Correo Electrónico</Text>
@@ -221,7 +209,7 @@ export default function RecuperarScreen() {
             </>
           )}
 
-          {/* ── PASO 2: Código ── */}
+         
           {step === 2 && (
             <>
               <Text style={styles.label}>Código de verificación</Text>
@@ -266,7 +254,7 @@ export default function RecuperarScreen() {
             </>
           )}
 
-          {/* ── PASO 3: Nueva contraseña ── */}
+          
           {step === 3 && (
             <>
               <Text style={styles.label}>Nueva contraseña</Text>
@@ -364,7 +352,7 @@ const styles = StyleSheet.create({
   centerIcon: { alignItems: 'center', marginVertical: 14 },
   logoIcon:   { width: 920, height: 220, opacity: 0.95 },
 
-  // Indicador de pasos
+ 
   stepsRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 20 },
   stepItemRow: { flexDirection: 'row', alignItems: 'center' },
   stepDot: {
@@ -441,7 +429,7 @@ const styles = StyleSheet.create({
   },
   eyeBtn: { padding: 4 },
 
-  // Código de verificación — input centrado y grande
+ 
   codeInputWrapper: {
     justifyContent: 'center',
   },

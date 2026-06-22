@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   Image,
   KeyboardAvoidingView,
   Platform,
@@ -20,6 +21,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BrandColors } from '@/constants/theme';
 import { authApi } from '@/services/api';
 import { useAuth } from '@/context/AuthContext';
+import { signInWithGoogle } from '@/services/googleAuth';
+import { signInWithFacebook } from '@/services/facebookAuth';
 
 export default function LoginScreen() {
   const { login } = useAuth();
@@ -30,10 +33,34 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading]   = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const [facebookLoading, setFacebookLoading] = useState(false);
   const [errors, setErrors]     = useState<{ email?: string; password?: string }>({});
 
-  // Error de servidor (credenciales inválidas) → se muestra inline
   const [serverError, setServerError] = useState('');
+
+  // Convierte cualquier error (técnico o no) a mensaje legible para el usuario
+  const sanitizeError = (msg: string): string => {
+    const r = (msg ?? '').toLowerCase();
+    if (r.includes('fetch failed') || r.includes('enotfound') || r.includes('network') || r.includes('conexión')) {
+      return 'No se pudo conectar al servidor. Verifica tu conexión a internet.';
+    }
+    if (r.includes('session_expired') || r.includes('sesión ha expirado') || r.includes('refresh token') || r.includes('token almacenado')) {
+      return 'Tu sesión ha expirado. Por favor, inicia sesión de nuevo.';
+    }
+    if (r.includes('error interno') || r.includes('disponible')) {
+      return 'El servidor no está disponible. Inténtalo más tarde.';
+    }
+    if (r.includes('credenciales') || r.includes('inválidas') || r.includes('invalid')) {
+      return 'Correo o contraseña incorrectos. Verifica tus datos.';
+    }
+    // Si el mensaje ya es amigable (viene del backend sanitizado), usarlo;
+    // si parece técnico, usar mensaje genérico.
+    if (msg.length > 120 || msg.includes('Error:') || msg.includes('at ')) {
+      return 'Ocurrió un error inesperado. Inténtalo de nuevo.';
+    }
+    return msg;
+  };
 
   const validate = () => {
     const e: typeof errors = {};
@@ -49,12 +76,41 @@ export default function LoginScreen() {
     setLoading(true);
     try {
       const response = await authApi.login(email.trim(), password);
-      await login(response.token, response.user);
-      // AuthContext hace la redirección automática
+      await login(response.token, response.user, response.refreshToken);
     } catch (err: any) {
-      setServerError(err.message ?? 'Credenciales inválidas. Verifica tu correo y contraseña.');
+      setServerError(sanitizeError(err.message ?? 'Credenciales inválidas. Verifica tu correo y contraseña.'));
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    setServerError('');
+    setGoogleLoading(true);
+    try {
+      const response = await signInWithGoogle();
+      await login(response.token, response.user, response.refreshToken);
+    } catch (err: any) {
+      if (err.code !== 'SIGN_IN_CANCELLED' && err.message !== 'Sign in action cancelled') {
+        setServerError(sanitizeError(err.message ?? 'No se pudo iniciar sesión con Google.'));
+      }
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
+
+  const handleFacebookLogin = async () => {
+    setServerError('');
+    setFacebookLoading(true);
+    try {
+      const response = await signInWithFacebook();
+      await login(response.token, response.user, response.refreshToken);
+    } catch (err: any) {
+      if (err.code !== 'SIGN_IN_CANCELLED' && err.message !== 'Sign in action cancelled') {
+        setServerError(sanitizeError(err.message ?? 'No se pudo iniciar sesión con Facebook.'));
+      }
+    } finally {
+      setFacebookLoading(false);
     }
   };
 
@@ -90,7 +146,6 @@ export default function LoginScreen() {
 
         <View style={styles.form}>
 
-          {/* Email */}
           <Text style={styles.label}>Correo Electrónico</Text>
           <View style={[styles.inputWrapper, (errors.email || serverError) && styles.inputError]}>
             <TextInput
@@ -106,7 +161,6 @@ export default function LoginScreen() {
           </View>
           {errors.email ? <Text style={styles.errorText}>{errors.email}</Text> : null}
 
-          {/* Contraseña */}
           <Text style={styles.label}>Contraseña</Text>
           <View style={[styles.inputWrapper, (errors.password || serverError) && styles.inputError]}>
             <TextInput
@@ -128,7 +182,6 @@ export default function LoginScreen() {
           </View>
           {errors.password ? <Text style={styles.errorText}>{errors.password}</Text> : null}
 
-          {/* Error de servidor (credenciales incorrectas) */}
           {serverError ? (
             <View style={styles.serverErrorRow}>
               <MaterialCommunityIcons name="alert-circle-outline" size={14} color={BrandColors.pinkLight} style={{ marginRight: 5 }} />
@@ -148,7 +201,7 @@ export default function LoginScreen() {
             style={[styles.primaryBtn, loading && styles.primaryBtnDisabled]}
             activeOpacity={0.85}
             onPress={handleLogin}
-            disabled={loading}
+            disabled={loading || googleLoading}
           >
             {loading
               ? <ActivityIndicator color={BrandColors.white} />
@@ -163,12 +216,31 @@ export default function LoginScreen() {
           </View>
 
           <View style={styles.socialRow}>
-            <View style={styles.socialBtn}>
-              <Text style={styles.socialIcon}>f</Text>
-            </View>
-            <View style={styles.socialBtn}>
-              <Text style={styles.socialIcon}>G</Text>
-            </View>
+            <TouchableOpacity 
+              style={styles.socialBtn}
+              activeOpacity={0.8}
+              onPress={handleGoogleLogin}
+              disabled={loading || googleLoading || facebookLoading}
+            >
+              {googleLoading ? (
+                <ActivityIndicator color={BrandColors.white} size="small" />
+              ) : (
+                <MaterialCommunityIcons name="google" size={24} color={BrandColors.white} />
+              )}
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.socialBtn}
+              activeOpacity={0.8}
+              onPress={handleFacebookLogin}
+              disabled={loading || googleLoading || facebookLoading}
+            >
+              {facebookLoading ? (
+                <ActivityIndicator color={BrandColors.white} size="small" />
+              ) : (
+                <MaterialCommunityIcons name="facebook" size={24} color={BrandColors.white} />
+              )}
+            </TouchableOpacity>
           </View>
 
           <TouchableOpacity
@@ -233,7 +305,6 @@ const styles = StyleSheet.create({
     marginLeft: 2,
   },
 
-  // Error de credenciales inline
   serverErrorRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -279,18 +350,18 @@ const styles = StyleSheet.create({
   dividerLine: { flex: 1, height: 1, backgroundColor: 'rgba(255,255,255,0.25)' },
   dividerText: { color: 'rgba(255,255,255,0.6)', fontSize: 12, marginHorizontal: 10 },
 
-  socialRow: { flexDirection: 'row', justifyContent: 'center', gap: 20, marginBottom: 24 },
+  socialRow: { flexDirection: 'row', justifyContent: 'center', gap: 24, marginBottom: 24 },
   socialBtn: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     backgroundColor: 'rgba(255,255,255,0.15)',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.3)',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  socialIcon: { color: BrandColors.white, fontSize: 22, fontWeight: '700' },
+  socialBtnText: { color: BrandColors.white, fontSize: 16, fontWeight: '600' },
 
   switchBtn:  { alignItems: 'center' },
   switchText: { color: BrandColors.white, fontSize: 15, fontWeight: '600', textDecorationLine: 'underline' },
