@@ -8,8 +8,8 @@ import { BrandColors } from '@/constants/theme';
 
 type IconName = React.ComponentProps<typeof MaterialCommunityIcons>['name'];
 
-const PURPLE_TAB   = BrandColors.purple;       // #4B1FA8
-const PURPLE_DARK  = BrandColors.purpleDark;   // #2E0A7A
+const PURPLE_TAB   = BrandColors.purple;       
+const PURPLE_DARK  = BrandColors.purpleDark;   
 const ACTIVE_COLOR = BrandColors.white;
 const INACTIVE_COLOR = 'rgba(255,255,255,0.55)';
 

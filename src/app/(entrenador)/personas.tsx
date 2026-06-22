@@ -20,7 +20,7 @@ import { useRouter } from 'expo-router';
 
 const { width } = Dimensions.get('window');
 
-// Mock data based on the screenshot
+//esto era para ver como se veia
 const ALUMNOS = [
   { id: '1', name: 'alumno 1', progress: 10 },
   { id: '2', name: 'alumno 2', progress: 30 },
@@ -39,14 +39,13 @@ const STROKE_WIDTH = 6;
 const RADIUS = (CIRCLE_SIZE - STROKE_WIDTH) / 2;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
-// Circular Progress Component
+
 function ProgressCircle({ progress }: { progress: number }) {
   const strokeDashoffset = CIRCUMFERENCE - (progress / 100) * CIRCUMFERENCE;
 
   return (
     <View style={styles.progressContainer}>
       <Svg width={CIRCLE_SIZE} height={CIRCLE_SIZE}>
-        {/* Background Circle */}
         <Circle
           stroke="#E5E5EA"
           fill="none"
@@ -55,9 +54,8 @@ function ProgressCircle({ progress }: { progress: number }) {
           r={RADIUS}
           strokeWidth={STROKE_WIDTH}
         />
-        {/* Progress Circle */}
         <Circle
-          stroke="#A3A3A3" // Un gris oscuro/medio según la imagen
+          stroke="#A3A3A3" 
           fill="none"
           cx={CIRCLE_SIZE / 2}
           cy={CIRCLE_SIZE / 2}
